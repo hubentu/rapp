@@ -3,7 +3,7 @@
 #' @import devtools
 #' @importFrom usethis create_package
 #' @include vtags.R
-BuildApp <- function(app, ui, Rfun, dir = tempdir()){
+BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = "plot", outID = "plotdiv", dataList = list(), methodList = list()){
     path <- file.path(dir, app)
     if(!dir.exists(path)){
         message("creating package ", app)
@@ -39,7 +39,7 @@ BuildApp <- function(app, ui, Rfun, dir = tempdir()){
     ## UI
     libdir <- file.path(path, "inst", "www", "lib")
     dir.create(libdir, recursive = TRUE, showWarnings = FALSE)
-    vjs <- vueJS(ui, Rfun)
+    vjs <- vueJS(ui, Rfun, outType, outID, dataList, methodList)
     writeLines(vjs, file.path(libdir, "app.js"))
     UI <- renderUI(ui, vuejs = "lib/app.js", opencpu = TRUE)
     
@@ -90,17 +90,32 @@ renderUI <- function(ui, vuejs = "lib/app.js", opencpu = FALSE){
 
 
 #' vue js
-vueJS <- function(ui, Rfun, outType = "plot", actionID = "Submit", outID = "plotdiv", dataList = list(), methodList = list()){
+vueJS <- function(ui, Rfun, outType = "plot", outID = "plotdiv", dataList = list(), methodList = list()){
     tmplID <- ui$attribs$id
     appID <- paste0(tmplID, "App")
-    args <- lapply(formals(Rfun[[1]]),
-                   function(x){
-                       if(is.call(x)){
-                           as.character(x)[-1]
-                       }else{
-                           as.character(x)
-                       }
-                   })
+
+    args <- c()
+    rMeths <- c()
+    for(j in seq(Rfun)){
+        arg1 <- lapply(formals(Rfun[[j]]),
+                       function(x){
+                           if(is.call(x)){
+                               as.character(x)[-1]
+                           }else{
+                               ifelse(is.null(x), "", as.character(x))
+                           }
+                       })
+        args <- c(args, arg1)
+        
+        argL <- as.list(paste0("this.", names(arg1)))
+        names(argL) <- names(arg1)
+        Args <- gsub("\"", "", toJSON(argL, auto_unbox = T))
+
+        if(outType[j] == "plot"){
+            rMeths[j] <- paste0(names(Rfun)[j], ': function () {var req = $("#', outID[j], '").rplot("', names(Rfun)[j], '", ', Args, ');}')
+        }
+
+    }
 
     for(i in seq(args)){
         if(length(args[[i]]) > 1){
@@ -117,40 +132,19 @@ vueJS <- function(ui, Rfun, outType = "plot", actionID = "Submit", outID = "plot
     ## data
     Dat <- paste0("data() {return ", toJSON(dataList, auto_unbox = T), "}")
     ## methods
-    ##Rfun <- randomplot
-    ##args <- formals(Rfun)
-    argL <- as.list(paste0("this.", names(args)))
-    names(argL) <- names(args)
-    Args <- gsub("\"", "", toJSON(argL, auto_unbox = T))
+    ## ##Rfun <- randomplot
+    ## ##args <- formals(Rfun)
+    ## argL <- as.list(paste0("this.", names(args)))
+    ## names(argL) <- names(args)
+    ## Args <- gsub("\"", "", toJSON(argL, auto_unbox = T))
     
-    if(outType == "plot"){
-        rMeth <- paste0(actionID, ': function () {var req = $("#', outID, '").rplot("', names(Rfun)[1], '", ', Args, ');}')
-        methodList <- c(rMeth, methodList)
-    }
-    methodList <- paste(unlist(methodList), collapse = ",")
+    ## if(outType == "plot"){
+    ##     rMeth <- paste0(names(Rfun)[1], ': function () {var req = $("#', outID, '").rplot("', names(Rfun)[1], '", ', Args, ');}')
+    ##     methodList <- c(rMeth, methodList)
+    ## }
+    methodList <- paste(c(rMeths, unlist(methodList)), collapse = ",")
     methodList <- paste0('methods: {', methodList, '}')
     
     tmplJS <- paste0('Vue.component("', tolower(appID), '", {template: "#', tmplID, '", ', Dat, ' ,', methodList, '}); new Vue({el: "#', appID, '", vuetify: new Vuetify()});')
     HTML(tmplJS)
 }
-
-
-
-
-ui <- div(id = "test-app",
-          vtags$v_app(
-                    list(vtags$v_card(
-                                   list(vtags$v_container(
-                                                  list(vtags$v_card_title("Title"),
-                                                       vtags$v_text_field(props = c("v-model"="n",
-                                                                                    "label"="Number")),
-                                                       vtags$v_select(props = c("v-model"="dist",
-                                                                                "label"="distribution",
-                                                                                ":items"="distItems")),
-                                                       vtags$v_card_actions("Click", props = c("v-on:click.prevent"="Submit")),
-                                                       vtags$v_img(props=c(id="plotdiv", height="600"))),    
-                                              props = c(fluid=TRUE))),
-                                   props = c("max-width"="800", "min-width"="600", "class"="mx-auto")
-                               ))
-                )
-          )
