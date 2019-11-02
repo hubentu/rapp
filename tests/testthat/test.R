@@ -30,3 +30,50 @@ ui <- div(id = "test-app",
           )
 
 BuildApp(app = "testapp", ui = ui, Rfun = list(rdplot = randomplot))
+
+
+buildUI <- function(uid = character(), ...){
+    div(id = uid, vtags$v_app(list(...)))
+}
+
+card <- function(title = NULL, subtitle = NULL, text = NULL, uiList = list(), ...){
+    tlist <- list()
+    if(!is.null(title)){
+        tlist <- c(tlist, vtags$v_card_title(title))
+    }
+    if(!is.null(subtitle)){
+        tlist <- c(tlist, vtags$v_card_subtitle(subtitle))
+    }
+    if(!is.null(text)){
+        tlist <- c(tlist, vtags$v_text(text))
+    }
+    tlist <- c(tlist, uiList)
+    vtags$v_card(list(
+              vtags$v_container(tlist, props = c("fluid" = TRUE))
+          ), props = c(...))
+}
+
+
+text_field <- function(model = character(), label = NULL, ...){
+    vtags$v_text_field(props = c("v-model" = model, label = label, ...))
+}
+
+vselect <- function(model = character(), label = NULL, ...){
+    if(length(model) > 0){
+        pp <- c(":items" = paste0(model, "Items"))
+    }else{
+        pp <- character()
+    }
+    vtags$v_select(props = c("v-model" = model, label = label, pp, ...))
+}
+
+btn <- function(onClick = "", label = "Submit", ...){
+    vtags$v_btn(label, props = c("v-on:click.prevent" = onClick, ...))
+}
+
+ui <- card(title = "test",
+           uiList=list(text_field(model="n", label="number"),
+                       vselect(model = "dist", label = "distribution"),
+                       btn(onClick = "randomplot")))
+index <- buildUI(uid = "test", ui)
+BuildApp(app = "testapp", ui = index, Rfun = list(randomplot = randomplot))

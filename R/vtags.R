@@ -19,6 +19,7 @@ vt_tags <- c("v-app",
              "v-container",
              "v-card",
              "v-card-title",
+             "v-card-subtitle",
              "v-card-actions",
              "v-carousel",
              "v-chip",
@@ -101,12 +102,12 @@ names(vt_tags) <- gsub("-", "_", vt_tags)
 setClass("TAG", contains = c("list"))
 ## setOldClass("shiny.tag")
 ## setClassUnion("characterORTAGs", c("character", "TAG", "shiny.tag"))
-setClassUnion("characterORlogical", c("character", "logical"))
+setClassUnion("characterORlogicalORNULL", c("character", "logical", "NULL"))
 setClassUnion("characterORlist", c("character", "list"))
 setClass("vtag",
          contains = "TAG",
          slots = c(tagName = "character",
-                   props = "characterORlogical",
+                   props = "characterORlogicalORNULL",
                    children = "characterORlist"),
          prototype = prototype(
              tagName = character(),
