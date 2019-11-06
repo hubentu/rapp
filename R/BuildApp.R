@@ -3,7 +3,7 @@
 #' @import devtools
 #' @importFrom usethis create_package
 #' @include vtags.R
-BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = "plot", outID = "plotdiv", dataList = list(), methodList = list()){
+BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = "plot", outID = "plotOut", dataList = list(), methodList = list()){
     path <- file.path(dir, app)
     if(!dir.exists(path)){
         message("creating package ", app)
@@ -24,6 +24,8 @@ BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = "plot", outID = "
         stopifnot(file.exists(Rfun))
         invisible(file.copy(Rfun, file.path(path, "R")))
     }else if(is(Rfun, "list")){
+        if(sum(names(Rfun)=="") < length(Rfun))
+            stop("Rfun should be a named list")
         for(i in seq(Rfun)){
             ##browser()
             Rfun1 <- deparse(Rfun[[i]])
@@ -90,7 +92,7 @@ renderUI <- function(ui, vuejs = "lib/app.js", opencpu = FALSE){
 
 
 #' vue js
-vueJS <- function(ui, Rfun, outType = "plot", outID = "plotdiv", dataList = list(), methodList = list()){
+vueJS <- function(ui, Rfun, outType = "plot", outID = "plotOut", dataList = list(), methodList = list()){
     tmplID <- ui$attribs$id
     appID <- paste0(tmplID, "App")
 
