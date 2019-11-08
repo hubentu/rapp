@@ -126,6 +126,7 @@ removeEmpty <- function(text){
     text <- gsub(" >", ">", text)
     text <- gsub("\n\n", "\n", text)
     text <- gsub(">(\\w+)[[:blank:]]+</", ">\\1</", text)
+    text <- gsub("(\\})[[:blank:]]+</", "\\1</", text)
     text <- gsub(">[[:blank:]]+</", "></", text)
     text
 }

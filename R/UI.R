@@ -1,9 +1,9 @@
-buildUI <- function(uid = character(), ...){
+BuildUI <- function(uid = character(), ...){
     div(id = uid, vtags$v_app(list(...)))
 }
 
 card <- function(title = NULL, subtitle = NULL, text = NULL,
-                 uiList = list(), titlePos = "top", ...){
+                 uiList = list(), uiPos = "top", ...){
     tlist <- list()
     if(!is.null(title)){
         tlist <- c(tlist, vtags$v_card_title(title))

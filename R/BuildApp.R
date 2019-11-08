@@ -24,7 +24,7 @@ BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = "plot", outID = "
         stopifnot(file.exists(Rfun))
         invisible(file.copy(Rfun, file.path(path, "R")))
     }else if(is(Rfun, "list")){
-        if(sum(names(Rfun)=="") < length(Rfun))
+        if(sum(names(Rfun)!="") < length(Rfun))
             stop("Rfun should be a named list")
         for(i in seq(Rfun)){
             ##browser()
@@ -43,7 +43,7 @@ BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = "plot", outID = "
     dir.create(libdir, recursive = TRUE, showWarnings = FALSE)
     vjs <- vueJS(ui, Rfun, outType, outID, dataList, methodList)
     writeLines(vjs, file.path(libdir, "app.js"))
-    UI <- renderUI(ui, vuejs = "lib/app.js", opencpu = TRUE)
+    UI <- renderUI(ui, vuejs = "lib/app.js", opencpu = TRUE, outType, outID)
     
     save_html(UI,
               file = file.path(dirname(libdir),
@@ -62,7 +62,7 @@ BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = "plot", outID = "
 #' @param outputPanel output tag list.
 #' @importFrom jsonlite toJSON
 #' @export
-renderUI <- function(ui, vuejs = "lib/app.js", opencpu = FALSE){
+renderUI <- function(ui, vuejs = "lib/app.js", opencpu = FALSE, outType = "plot", outID = "plotOut"){
     deps <- list(
         htmlDependency("vue", "2.6.10",
                        c(href = "https://cdn.jsdelivr.net/npm/vue@2.6.10/dist"),
@@ -84,8 +84,19 @@ renderUI <- function(ui, vuejs = "lib/app.js", opencpu = FALSE){
         ## ui <- tagList(ui, tags$head(singleton(tags$script(src="lib/ocpu.js"))))
     }
     uid <- ui$attribs$id
+    vbind <- c()
+    for(i in seq(outType)){
+        if(outType[i] == "text"){
+            ##vbind[i] <- paste0('@', outID[i], 'text-gen="', outID[i], 'textgen"')
+            vbind[i] <- paste0(outID[i], "textgen")
+            names(vbind)[i] <- paste0("@", outID[i], "text-gen")
+        }
+    }
+    atag <- tag(tolower(paste0(uid, "app")),
+                na.omit(c(vbind, ref = paste0(uid, "Ref"))))
+    
     tagList(deps,
-            tags$div(id = paste0(uid, "App"), tag(tolower(paste0(uid, "app")), "")),
+            tags$div(id = paste0(uid, "App"), atag),
             tags$script(type = "text/x-template", id = uid, ui),
             tags$script(src = vuejs))
 }
@@ -98,6 +109,7 @@ vueJS <- function(ui, Rfun, outType = "plot", outID = "plotOut", dataList = list
 
     args <- c()
     rMeths <- c()
+    vMeths <- c()
     for(j in seq(Rfun)){
         arg1 <- lapply(formals(Rfun[[j]]),
                        function(x){
@@ -107,7 +119,7 @@ vueJS <- function(ui, Rfun, outType = "plot", outID = "plotOut", dataList = list
                                ifelse(is.null(x), "", as.character(x))
                            }
                        })
-        args <- c(args, arg1)
+        args <- c(args, arg1[!names(arg1) %in% names(args)])
         
         argL <- as.list(paste0("this.", names(arg1)))
         names(argL) <- names(arg1)
@@ -115,8 +127,16 @@ vueJS <- function(ui, Rfun, outType = "plot", outID = "plotOut", dataList = list
 
         if(outType[j] == "plot"){
             rMeths[j] <- paste0(names(Rfun)[j], ': function () {var req = $("#', outID[j], '").rplot("', names(Rfun)[j], '", ', Args, ');}')
+        }else if(outType[j] == "text"){
+            rMeths[j] <- paste0(names(Rfun)[j],
+                                ': function () {var self = this; var req = ocpu.rpc("',
+                                names(Rfun)[j], '", ', Args,
+                                ', function(output){ self.$emit("',
+                                outID[j], 'text-gen", output) });}')
+            vMeths[j] <- paste0(outID[j],
+                                'textgen: function(text){this.$refs.',
+                                tmplID, 'Ref.', outID[j],' = text}')
         }
-
     }
 
     for(i in seq(args)){
@@ -147,6 +167,10 @@ vueJS <- function(ui, Rfun, outType = "plot", outID = "plotOut", dataList = list
     methodList <- paste(c(rMeths, unlist(methodList)), collapse = ",")
     methodList <- paste0('methods: {', methodList, '}')
     
-    tmplJS <- paste0('Vue.component("', tolower(appID), '", {template: "#', tmplID, '", ', Dat, ' ,', methodList, '}); new Vue({el: "#', appID, '", vuetify: new Vuetify()});')
+    tmplJS <- paste0('Vue.component("', tolower(appID), '", {template: "#', tmplID, '", ', Dat, ' ,', methodList, '}); new vm = Vue({el: "#', appID, '", vuetify: new Vuetify()});')
+    if(!is.null(vMeths)){
+        vmeth <- paste0('methods: {', paste(na.omit(vMeths), collapse = ","), '}')
+        tmplJS <- paste0(sub("});$", ",", tmplJS), vmeth, "});")
+    }
     HTML(tmplJS)
 }
