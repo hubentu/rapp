@@ -88,8 +88,8 @@ renderUI <- function(ui, vuejs = "lib/app.js", opencpu = FALSE, outType = "plot"
     for(i in seq(outType)){
         if(outType[i] == "text"){
             ##vbind[i] <- paste0('@', outID[i], 'text-gen="', outID[i], 'textgen"')
-            vbind[i] <- paste0(outID[i], "textgen")
-            names(vbind)[i] <- paste0("@", outID[i], "text-gen")
+            vbind[i] <- paste0(tolower(outID[i]), "textgen")
+            names(vbind)[i] <- paste0("@", tolower(outID[i]), "text-gen")
         }
     }
     atag <- tag(tolower(paste0(uid, "app")),
@@ -132,10 +132,13 @@ vueJS <- function(ui, Rfun, outType = "plot", outID = "plotOut", dataList = list
                                 ': function () {var self = this; var req = ocpu.rpc("',
                                 names(Rfun)[j], '", ', Args,
                                 ', function(output){ self.$emit("',
-                                outID[j], 'text-gen", output) });}')
-            vMeths[j] <- paste0(outID[j],
+                                tolower(outID[j]), 'text-gen", output) });}')
+            vMeths[j] <- paste0(tolower(outID[j]),
                                 'textgen: function(text){this.$refs.',
                                 tmplID, 'Ref.', outID[j],' = text}')
+            ilist <- list("")
+            names(ilist) <- outID[j]
+            args <- c(args, ilist)
         }
     }
 
@@ -167,7 +170,7 @@ vueJS <- function(ui, Rfun, outType = "plot", outID = "plotOut", dataList = list
     methodList <- paste(c(rMeths, unlist(methodList)), collapse = ",")
     methodList <- paste0('methods: {', methodList, '}')
     
-    tmplJS <- paste0('Vue.component("', tolower(appID), '", {template: "#', tmplID, '", ', Dat, ' ,', methodList, '}); new vm = Vue({el: "#', appID, '", vuetify: new Vuetify()});')
+    tmplJS <- paste0('Vue.component("', tolower(appID), '", {template: "#', tmplID, '", ', Dat, ' ,', methodList, '}); var vm = new Vue({el: "#', appID, '", vuetify: new Vuetify()});')
     if(!is.null(vMeths)){
         vmeth <- paste0('methods: {', paste(na.omit(vMeths), collapse = ","), '}')
         tmplJS <- paste0(sub("});$", ",", tmplJS), vmeth, "});")

@@ -29,13 +29,14 @@ text_field <- function(model = character(), label = NULL, ...){
     vtags$v_text_field(props = c("v-model" = model, label = label, ...))
 }
 
-vselect <- function(model = character(), label = NULL, ...){
+vselect <- function(model = character(), label = NULL, change = NULL, ...){
     if(length(model) > 0){
         pp <- c(":items" = paste0(model, "Items"))
     }else{
         pp <- character()
     }
-    vtags$v_select(props = c("v-model" = model, label = label, pp, ...))
+    vtags$v_select(props = c("v-model" = model, label = label, pp,
+                             "v-on:change" = change, ...))
 }
 
 vimg <- function(src = character(), ...){
