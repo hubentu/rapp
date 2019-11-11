@@ -139,6 +139,18 @@ vueJS <- function(ui, Rfun, outType = "plot", outID = "plotOut", dataList = list
             ilist <- list("")
             names(ilist) <- outID[j]
             args <- c(args, ilist)
+        }else if(outType[j] == "table"){
+            rMeths[j] <- paste0(names(Rfun)[j],
+                                ': function () {var self = this; var req = ocpu.rpc("',
+                                names(Rfun)[j], '", ', Args,
+                                ', function(output){ self.$emit("',
+                                tolower(outID[j]), 'table-gen", output) });}')
+            vMeths[j] <- paste0(tolower(outID[j]),
+                                'tablegen: function(table){this.$refs.',
+                                tmplID, 'Ref.', outID[j],' = table}')
+            ilist <- vector("list", 2)
+            names(ilist) <- c("header", outID[j])
+            args <- c(args, ilist)
         }
     }
 
