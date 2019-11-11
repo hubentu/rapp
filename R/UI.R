@@ -47,8 +47,9 @@ btn <- function(onClick = "", label = "Submit", ...){
     vtags$v_btn(label, props = c("v-on:click.prevent" = onClick, ...))
 }
 
-data_table <- function(header = "header", dataframe, class = "elevation-1", ...){
-    vtags$v_data_table(props = c(":headers" = header,
-                                 ":items" = dataframe,
+data_table <- function(table, class = "elevation-1", items_per_page = 5, ...){
+    vtags$v_data_table(props = c(":headers" = paste0(table, "headers"),
+                                 ":items" = table,
+                                 ":items-per-page" = items_per_page,
                                  "class" = class, ...))
 }

@@ -87,9 +87,11 @@ renderUI <- function(ui, vuejs = "lib/app.js", opencpu = FALSE, outType = "plot"
     vbind <- c()
     for(i in seq(outType)){
         if(outType[i] == "text"){
-            ##vbind[i] <- paste0('@', outID[i], 'text-gen="', outID[i], 'textgen"')
             vbind[i] <- paste0(tolower(outID[i]), "textgen")
             names(vbind)[i] <- paste0("@", tolower(outID[i]), "text-gen")
+        }else if(outType[i] == "table"){
+            vbind[i] <- paste0(tolower(outID[i]), "tablegen")
+            names(vbind)[i] <- paste0("@", tolower(outID[i]), "table-gen")
         }
     }
     atag <- tag(tolower(paste0(uid, "app")),
@@ -147,9 +149,12 @@ vueJS <- function(ui, Rfun, outType = "plot", outID = "plotOut", dataList = list
                                 tolower(outID[j]), 'table-gen", output) });}')
             vMeths[j] <- paste0(tolower(outID[j]),
                                 'tablegen: function(table){this.$refs.',
-                                tmplID, 'Ref.', outID[j],' = table}')
-            ilist <- vector("list", 2)
-            names(ilist) <- c("header", outID[j])
+                                tmplID, 'Ref.', outID[j],' = table;',
+                                'let keys = Object.keys(table[0]);let hd=[];',
+                                'for(i=0;i<keys.length;i++){hd[i]={text: keys[i], value: keys[i]}};',
+                                'this.$refs.testRef.', outID[j], 'headers=hd}')
+            ilist <- list(list(), list())
+            names(ilist) <- c(paste0(outID[j], "headers"), outID[j])
             args <- c(args, ilist)
         }
     }
