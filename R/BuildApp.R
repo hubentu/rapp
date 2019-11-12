@@ -118,7 +118,7 @@ renderUI <- function(ui, Rfun = list(), dataList = list(), methodList = list(), 
 
 
 #' vue js
-vueJS <- function(ui, Rfun, outType = "plot", outID = "plotOut", dataList = list(), methodList = list()){
+vueJS <- function(ui, Rfun, outType = list("plot"), outID = list("plotOut"), dataList = list(), methodList = list()){
     tmplID <- ui$attribs$id
     appID <- paste0(tmplID, "App")
 
@@ -140,35 +140,57 @@ vueJS <- function(ui, Rfun, outType = "plot", outID = "plotOut", dataList = list
         names(argL) <- names(arg1)
         Args <- gsub("\"", "", toJSON(argL, auto_unbox = T))
 
-        if(outType[j] == "plot"){
-            rMeths[j] <- paste0(names(Rfun)[j], ': function () {var req = $("#', outID[j], '").rplot("', names(Rfun)[j], '", ', Args, ');}')
-        }else if(outType[j] == "text"){
+        if(outType[[j]] == "plot"){
+            rMeths[j] <- paste0(names(Rfun)[j], ': function () {var req = $("#', outID[[j]], '").rplot("', names(Rfun)[j], '", ', Args, ');}')
+        }else if(is.character(outType[[j]]) && outType[[j]] == "text"){
             rMeths[j] <- paste0(names(Rfun)[j],
                                 ': function () {var self = this; var req = ocpu.rpc("',
                                 names(Rfun)[j], '", ', Args,
                                 ', function(output){ self.$emit("',
-                                tolower(outID[j]), 'text-gen", output) });}')
-            vMeths[j] <- paste0(tolower(outID[j]),
+                                tolower(outID[[j]]), 'text-gen", output) });}')
+            vMeths[j] <- paste0(tolower(outID[[j]]),
                                 'textgen: function(text){this.$refs.',
-                                tmplID, 'Ref.', outID[j],' = text}')
+                                tmplID, 'Ref.', outID[[j]],' = text}')
             ilist <- list("")
-            names(ilist) <- outID[j]
+            names(ilist) <- outID[[j]]
             args <- c(args, ilist)
-        }else if(outType[j] == "table"){
+        }else if(is.character(outType[[j]]) && outType[[j]] == "table"){
             rMeths[j] <- paste0(names(Rfun)[j],
                                 ': function () {var self = this; var req = ocpu.rpc("',
                                 names(Rfun)[j], '", ', Args,
                                 ', function(output){ self.$emit("',
-                                tolower(outID[j]), 'table-gen", output) });}')
-            vMeths[j] <- paste0(tolower(outID[j]),
+                                tolower(outID[[j]]), 'table-gen", output) });}')
+            vMeths[j] <- paste0(tolower(outID[[j]]),
                                 'tablegen: function(table){this.$refs.',
-                                tmplID, 'Ref.', outID[j],' = table;',
+                                tmplID, 'Ref.', outID[[j]],' = table;',
                                 'let keys = Object.keys(table[0]);let hd=[];',
                                 'for(i=0;i<keys.length;i++){hd[i]={text: keys[i], value: keys[i]}};',
-                                'this.$refs.testRef.', outID[j], 'headers=hd}')
+                                'this.$refs.testRef.', outID[[j]], 'headers=hd}')
             ilist <- list(list(), list())
-            names(ilist) <- c(paste0(outID[j], "headers"), outID[j])
+            names(ilist) <- c(paste0(outID[[j]], "headers"), outID[[j]])
             args <- c(args, ilist)
+        }else if(is.list(outType[[j]])){
+            rMeths[j] <- paste0(names(Rfun)[j],
+                                ': function () {var self = this; var req = ocpu.rpc("',
+                                names(Rfun)[j], '", ', Args,
+                                ', function(output){ self.$emit("',
+                                tolower(paste(unlist(outID[[j]]), collapse = "-")),
+                                '-gen", output) });}')
+            
+            vMeths[j] <- paste0(paste(unlist(tolower(outID[[j]])), collapse = "-"),
+                       'gen: function(dat){')
+            m1 <- c()
+            for(m in seq(outType[[j]])){
+                m1[m] <- paste0('this.$refs.', tmplID, 'Ref.', outID[[j]][m],' = dat[',m,'];')
+                if(outType[[j]][m] == "table"){
+                    m2 <- paste0('let keys = Object.keys(dat[',m,'][0]);let hd=[];',
+                                 'for(i=0;i<keys.length;i++){hd[i]={text: keys[i], value: keys[i]}};',
+                                 'this.$refs.testRef.', outID[[j]][m], 'headers=hd}')
+                    m1[m] <- paste(m1[m], m2)
+                }                
+            }
+            vMeths[j] <- paste(c(vMeths[j], m1), collapse = "")
+            
         }
     }
 
