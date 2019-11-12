@@ -29,22 +29,28 @@ text_field <- function(model = character(), label = NULL, ...){
     vtags$v_text_field(props = c("v-model" = model, label = label, ...))
 }
 
-vselect <- function(model = character(), label = NULL, change = NULL, ...){
+vselect <- function(model = character(), label = NULL, change = NULL, ...){    
     if(length(model) > 0){
         pp <- c(":items" = paste0(model, "Items"))
     }else{
         pp <- character()
     }
+    if(length(change) > 0){
+        names(change) <- rep("@change", length(change))
+    }
     vtags$v_select(props = c("v-model" = model, label = label, pp,
-                             "v-on:change" = change, ...))
+                             change, ...))
 }
 
 vimg <- function(src = character(), ...){
     vtags$v_img(props = c(src = src, ...))
 }
 
-btn <- function(onClick = "", label = "Submit", ...){
-    vtags$v_btn(label, props = c("v-on:click.prevent" = onClick, ...))
+btn <- function(onClick = NULL, label = "Submit", ...){
+    if(length(onClick) > 0){
+        names(onClick) <- rep("@click.prevent", length(onClick))
+    }
+    vtags$v_btn(label, props = c(onClick, ...))
 }
 
 data_table <- function(table, class = "elevation-1", items_per_page = 5, ...){
