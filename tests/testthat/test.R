@@ -11,7 +11,7 @@ randomplot <- function (n, dist = c("normal", "uniform"))
     }
 }
 
-gendat <- function(n = 100, dist = c("normal", "uniform")){
+genstr <- function(n = 100, dist = c("normal", "uniform")){
     n <- as.integer(n)
     dist <- match.arg(dist)
     stopifnot(n < 1e+06)
@@ -30,10 +30,15 @@ gentab <- function(n = 100, dist = c("normal", "uniform")){
     as.data.frame(rbind(summary(dat), summary(dat)))
 }
 
+gendat <- function(n = 100, dist = c("normal", "uniform")) {
+    list(Str = genstr(n, dist),
+         Tab = gentab(n, dist))
+}
+
 
 ui <- card(title = "test", "min-width" = "800", class = "mx-auto",
            uiList=list(text_field(model="n", label="number"),
-                       vselect(model = "dist", label = "distribution", change = "gentab"),
+                       vselect(model = "dist", label = "distribution", change = "gendat"),
                        btn(onClick = "randomplot"),
                        data_table(table = "tsum"),
                        vimg(id = "plotOut", height = "600")))
@@ -43,17 +48,32 @@ BuildApp(app = "testapp", ui = index,
          outType = c("table", "plot"),
          outID = c("tsum", "plotOut"))
 
-
+##
 ui <- card(title = "test", "min-width" = "800", class = "mx-auto",
            uiList=list(text_field(model="n", label="number"),
                        vselect(model = "dist", label = "distribution",
-                               change = c("gentab", "gendat")),
+                               change = "genstr", "v-on:change" = "gentab"),
                        btn(onClick = "randomplot"),
                        div("{{textA[0]}}"),
                        data_table(table = "tsum"),
                        vimg(id = "plotOut", height = "600")))
 index <- BuildUI(uid = "test", ui)
 BuildApp(app = "testapp", ui = index,
-         Rfun = list(gendat = gendat, gentab = gentab, randomplot = randomplot),
-         outType = c("text", "table", "plot"),
-         outID = c("textA", "tsum", "plotOut"))
+         Rfun = list(genstr = genstr, gentab = gentab, randomplot = randomplot),
+         outType = list("text", "table", "plot"),
+         outID = list("textA", "tsum", "plotOut"))
+
+##
+ui <- card(title = "test", "min-width" = "800", class = "mx-auto",
+           uiList=list(text_field(model="n", label="number"),
+                       vselect(model = "dist", label = "distribution",
+                               change = "gendat"),
+                       btn(onClick = "randomplot"),
+                       div("{{textA[0]}}"),
+                       data_table(table = "tsum"),
+                       vimg(id = "plotOut", height = "600")))
+index <- BuildUI(uid = "test", ui)
+BuildApp(app = "testapp", ui = index,
+         Rfun = list(gendat = gendat, randomplot = randomplot),
+         outType = list(list("text", "table"), "plot"),
+         outID = list(list("textA", "tsum"), "plotOut"))

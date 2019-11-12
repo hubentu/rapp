@@ -3,7 +3,7 @@
 #' @import devtools
 #' @importFrom usethis create_package
 #' @include vtags.R
-BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = "plot", outID = "plotOut", dataList = list(), methodList = list()){
+BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = list("plot"), outID = list("plotOut"), dataList = list(), methodList = list()){
     path <- file.path(dir, app)
     if(!dir.exists(path)){
         message("creating package ", app)
@@ -39,15 +39,18 @@ BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = "plot", outID = "
     document(path)
     
     ## UI
-    libdir <- file.path(path, "inst", "www", "lib")
-    dir.create(libdir, recursive = TRUE, showWarnings = FALSE)
-    vjs <- vueJS(ui, Rfun, outType, outID, dataList, methodList)
-    writeLines(vjs, file.path(libdir, "app.js"))
-    UI <- renderUI(ui, vuejs = "lib/app.js", opencpu = TRUE, outType, outID)
+    wwwdir <- file.path(path, "inst", "www")
+    ## dir.create(libdir, recursive = TRUE, showWarnings = FALSE)
+    ## vjs <- vueJS(ui, Rfun, outType, outID, dataList, methodList)
+    ## writeLines(vjs, file.path(libdir, "app.js"))
+    ## UI <- renderUI(ui, vuejs = "lib/app.js", opencpu = TRUE, outType, outID)
     
-    save_html(UI,
-              file = file.path(dirname(libdir),
-                               paste0(deparse(substitute(ui)), ".html")))
+    ## save_html(UI,
+    ##           file = file.path(dirname(libdir),
+    ##                            paste0(deparse(substitute(ui)), ".html")))
+    renderUI(ui, Rfun = Rfun, dataList = dataList, methodList = methodList,
+             outdir = wwwdir, vuejs = file.path("lib", paste0(app, ".js")),
+             outType = outType, outID = outID)
     message("Package created: ", path)
     return(path)
 }
@@ -62,7 +65,9 @@ BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = "plot", outID = "
 #' @param outputPanel output tag list.
 #' @importFrom jsonlite toJSON
 #' @export
-renderUI <- function(ui, vuejs = "lib/app.js", opencpu = FALSE, outType = "plot", outID = "plotOut"){
+renderUI <- function(ui, Rfun = list(), dataList = list(), methodList = list(), outdir,
+                     vuejs = "lib/app.js", opencpu = TRUE, outType = list("plot"),
+                     outID = list("plotOut")){
     deps <- list(
         htmlDependency("vue", "2.6.10",
                        c(href = "https://cdn.jsdelivr.net/npm/vue@2.6.10/dist"),
@@ -71,7 +76,6 @@ renderUI <- function(ui, vuejs = "lib/app.js", opencpu = FALSE, outType = "plot"
                        c(href = "https://cdn.jsdelivr.net/npm/vuetify@2.0.2/dist"),
                        script = "vuetify.min.js",
                        stylesheet = "vuetify.min.css"))
-
     if(opencpu){
         odeps <- list(
             htmlDependency("jquery", "1.11.1",
@@ -86,21 +90,30 @@ renderUI <- function(ui, vuejs = "lib/app.js", opencpu = FALSE, outType = "plot"
     uid <- ui$attribs$id
     vbind <- c()
     for(i in seq(outType)){
-        if(outType[i] == "text"){
-            vbind[i] <- paste0(tolower(outID[i]), "textgen")
-            names(vbind)[i] <- paste0("@", tolower(outID[i]), "text-gen")
-        }else if(outType[i] == "table"){
-            vbind[i] <- paste0(tolower(outID[i]), "tablegen")
-            names(vbind)[i] <- paste0("@", tolower(outID[i]), "table-gen")
+        if(outType[[i]] == "text"){
+            vbind[i] <- paste0(tolower(outID[[i]]), "textgen")
+            names(vbind)[i] <- paste0("@", tolower(outID[[i]]), "text-gen")
+        }else if(outType[[i]] == "table"){
+            vbind[i] <- paste0(tolower(outID[[i]]), "tablegen")
+            names(vbind)[i] <- paste0("@", tolower(outID[[i]]), "table-gen")
         }
     }
     atag <- tag(tolower(paste0(uid, "app")),
                 na.omit(c(vbind, ref = paste0(uid, "Ref"))))
     
-    tagList(deps,
-            tags$div(id = paste0(uid, "App"), atag),
-            tags$script(type = "text/x-template", id = uid, ui),
-            tags$script(src = vuejs))
+    UI <- tagList(deps,
+                  tags$div(id = paste0(uid, "App"), atag),
+                  tags$script(type = "text/x-template", id = uid, ui),
+                  tags$script(src = vuejs))
+
+    vjs <- vueJS(ui, Rfun, outType, outID, dataList, methodList)
+    dir.create(file.path(outdir, dirname(vuejs)),
+               showWarnings = FALSE, recursive = TRUE)
+    writeLines(vjs, file.path(outdir, vuejs))
+    htmlout <- file.path(outdir, paste0(uid, ".html"))
+    save_html(UI, file = htmlout)
+    message("UI rendered to ", htmlout)
+    return(htmlout)
 }
 
 
