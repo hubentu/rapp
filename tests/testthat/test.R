@@ -31,6 +31,24 @@ gentab <- function(n = 100, dist = c("normal", "uniform")){
 }
 
 gendat <- function(n = 100, dist = c("normal", "uniform")) {
+    genstr <- function(n = 100, dist = c("normal", "uniform")){
+        n <- as.integer(n)
+        dist <- match.arg(dist)
+        stopifnot(n < 1e+06)
+        paste0(n, ":", dist)
+    }
+
+    gentab <- function(n = 100, dist = c("normal", "uniform")){
+        n <- as.integer(n)
+        dist <- match.arg(dist)
+        stopifnot(n < 1e+06)
+        if (dist == "normal") {
+            dat <- rnorm(n)
+        }else if (dist == "uniform") {
+            dat <- runif(n)
+        }
+        as.data.frame(rbind(summary(dat), summary(dat)))
+    }
     list(Str = genstr(n, dist),
          Tab = gentab(n, dist))
 }
