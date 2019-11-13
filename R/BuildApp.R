@@ -2,6 +2,8 @@
 #'
 #' @import devtools
 #' @importFrom usethis create_package
+#' @importFrom codetools findGlobals
+#' @importFrom utils find
 #' @include vtags.R
 BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = list("plot"), outID = list("plotOut"), dataList = list(), methodList = list()){
     path <- file.path(dir, app)
@@ -28,12 +30,26 @@ BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = list("plot"), out
             stop("Rfun should be a named list")
         for(i in seq(Rfun)){
             ##browser()
+            ff <- findGlobals(names(Rfun)[i])
+            ff1 <- ff[grepl(".GlobalEnv", sapply(ff, find))]
+            pkgs <- grep("package:", unlist(sapply(ff, find)), value = TRUE)
+            pkgs <- sub("package:", "",
+                        unique(setdiff(pkgs, c("package:base", paste0("package:", app)))))
+
             Rfun1 <- deparse(Rfun[[i]])
             Rfun1[1] <- paste(names(Rfun)[i], "<-", Rfun1[1])
-            Rfun1 <- c(paste("#'", names(Rfun)[i]),
-                      "#' @export", Rfun1)
-            writeLines(Rfun1,
-                       file.path(path, "R", paste0(names(Rfun)[i], ".R")))
+            if(length(pkgs) > 0){
+                Rfun1 <- c(paste("#'", names(Rfun)[i]),
+                           paste("#' @import", pkgs),
+                           "#' @export", Rfun1)
+            }else{
+                Rfun1 <- c(paste("#'", names(Rfun)[i]),
+                           "#' @export", Rfun1)
+            }
+            rfile <- file.path(path, "R", paste0(names(Rfun)[i], ".R"))
+
+            writeLines(Rfun1, rfile)
+            dump(ff1, rfile, append = TRUE)
         }
     }
     document(path)

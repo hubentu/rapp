@@ -17,5 +17,6 @@ RoxygenNote: 6.1.1
 Collate: 
     'vtags.R'
     'BuildApp.R'
+    'UI.R'
 Suggests: 
     testthat

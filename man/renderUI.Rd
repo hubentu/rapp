@@ -4,7 +4,9 @@
 \alias{renderUI}
 \title{Build web UI}
 \usage{
-renderUI(ui, vuejs = "lib/app.js", opencpu = FALSE)
+renderUI(ui, Rfun = list(), dataList = list(), methodList = list(),
+  outdir, vuejs = "lib/app.js", opencpu = TRUE,
+  outType = list("plot"), outID = list("plotOut"))
 }
 \arguments{
 \item{inputPanel}{input menu tag list.}

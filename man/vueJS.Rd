@@ -4,8 +4,8 @@
 \alias{vueJS}
 \title{vue js}
 \usage{
-vueJS(ui, Rfun, outType = "plot", actionID = "Submit",
-  outID = "plotdiv", dataList = list(), methodList = list())
+vueJS(ui, Rfun, outType = list("plot"), outID = list("plotOut"),
+  dataList = list(), methodList = list())
 }
 \description{
 vue js

@@ -18,6 +18,17 @@ genstr <- function(n = 100, dist = c("normal", "uniform")){
     paste0(n, ":", dist)
 }
 
+## gentab <- function(n = 100, dist = c("normal", "uniform")){
+##     n <- as.integer(n)
+##     dist <- match.arg(dist)
+##     stopifnot(n < 1e+06)
+##     if (dist == "normal") {
+##         dat <- rnorm(n)
+##     }else if (dist == "uniform") {
+##         dat <- runif(n)
+##     }
+##     as.data.frame(rbind(summary(dat), summary(dat)))
+## }
 gentab <- function(n = 100, dist = c("normal", "uniform")){
     n <- as.integer(n)
     dist <- match.arg(dist)
@@ -27,32 +38,42 @@ gentab <- function(n = 100, dist = c("normal", "uniform")){
     }else if (dist == "uniform") {
         dat <- runif(n)
     }
-    as.data.frame(rbind(summary(dat), summary(dat)))
+    list(tdat = dat,
+         tsum = as.data.frame(rbind(summary(dat))))
 }
+
 
 gendat <- function(n = 100, dist = c("normal", "uniform")) {
-    genstr <- function(n = 100, dist = c("normal", "uniform")){
-        n <- as.integer(n)
-        dist <- match.arg(dist)
-        stopifnot(n < 1e+06)
-        paste0(n, ":", dist)
-    }
+    ## genstr <- function(n = 100, dist = c("normal", "uniform")){
+    ##     n <- as.integer(n)
+    ##     dist <- match.arg(dist)
+    ##     paste0(n, ":", dist)
+    ## }
 
-    gentab <- function(n = 100, dist = c("normal", "uniform")){
-        n <- as.integer(n)
-        dist <- match.arg(dist)
-        stopifnot(n < 1e+06)
-        if (dist == "normal") {
-            dat <- rnorm(n)
-        }else if (dist == "uniform") {
-            dat <- runif(n)
-        }
-        as.data.frame(rbind(summary(dat), summary(dat)))
-    }
+    ## gentab <- function(n = 100, dist = c("normal", "uniform")){
+    ##     n <- as.integer(n)
+    ##     dist <- match.arg(dist)
+    ##     stopifnot(n < 1e+06)
+    ##     if (dist == "normal") {
+    ##         dat <- rnorm(n)
+    ##     }else if (dist == "uniform") {
+    ##         dat <- runif(n)
+    ##     }
+    ##     list(tdat = dat,
+    ##         tsum = as.data.frame(rbind(summary(dat))))
+    ## }
+    dat <- gentab(n, dist)
     list(Str = genstr(n, dist),
-         Tab = gentab(n, dist))
+         Dat = dat$tdat,
+         Tsum = dat$tsum)
 }
 
+library(ggplot2)
+datplot <- function(rdat){
+    rdat <- data.frame(rdat = rdat)
+    ggplot(rdat, aes(x = rdat)) + geom_histogram()
+    ## hist(rdat)
+}
 
 ui <- card(title = "test", "min-width" = "800", class = "mx-auto",
            uiList=list(text_field(model="n", label="number"),
@@ -82,16 +103,23 @@ BuildApp(app = "testapp", ui = index,
          outID = list("textA", "tsum", "plotOut"))
 
 ##
-ui <- card(title = "test", "min-width" = "800", class = "mx-auto",
+ui <- card(title = "Test App", text = "{{textA[0]}}",
+           "min-width" = "800",
            uiList=list(text_field(model="n", label="number"),
                        vselect(model = "dist", label = "distribution",
                                change = "gendat"),
-                       btn(onClick = "randomplot"),
-                       div("{{textA[0]}}"),
                        data_table(table = "tsum"),
+                       br(),
+                       btn(onClick = "datplot"),
+                       br(),
                        vimg(id = "plotOut", height = "600")))
 index <- BuildUI(uid = "test", ui)
 BuildApp(app = "testapp", ui = index,
-         Rfun = list(gendat = gendat, randomplot = randomplot),
-         outType = list(list("text", "table"), "plot"),
-         outID = list(list("textA", "tsum"), "plotOut"))
+         Rfun = list(gendat = gendat, datplot = datplot),
+         outType = list(list("text", "text", "table"), "plot"),
+         outID = list(list("textA", "rdat", "tsum"), "plotOut"))
+
+
+## plotly
+library(ggplot2)
+library(plotly)

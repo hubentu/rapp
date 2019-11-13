@@ -3,7 +3,7 @@ BuildUI <- function(uid = character(), ...){
 }
 
 card <- function(title = NULL, subtitle = NULL, text = NULL,
-                 uiList = list(), uiPos = "top", ...){
+                 uiList = list(), uiPos = "top", class = "mx-auto", ...){
     tlist <- list()
     if(!is.null(title)){
         tlist <- c(tlist, vtags$v_card_title(title))
@@ -12,7 +12,7 @@ card <- function(title = NULL, subtitle = NULL, text = NULL,
         tlist <- c(tlist, vtags$v_card_subtitle(subtitle))
     }
     if(!is.null(text)){
-        tlist <- c(tlist, vtags$v_text(text))
+        tlist <- c(tlist, vtags$v_card_text(text))
     }
     if(uiPos == "top") {
         tlist <- c(tlist, uiList)
@@ -21,7 +21,7 @@ card <- function(title = NULL, subtitle = NULL, text = NULL,
     }
     vtags$v_card(list(
               vtags$v_container(tlist, props = c("fluid" = TRUE))
-          ), props = c(...))
+          ), props = c(class = class, ...))
 }
 
 

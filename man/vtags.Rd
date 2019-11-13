@@ -4,7 +4,7 @@
 \name{vtags}
 \alias{vtags}
 \title{vtags}
-\format{An object of class \code{list} of length 74.}
+\format{An object of class \code{list} of length 76.}
 \usage{
 vtags
 }

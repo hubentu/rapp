@@ -4,7 +4,8 @@
 \alias{BuildApp}
 \title{Build a web APP}
 \usage{
-BuildApp(app, ui, Rfun, dir = tempdir())
+BuildApp(app, ui, Rfun, dir = tempdir(), outType = list("plot"),
+  outID = list("plotOut"), dataList = list(), methodList = list())
 }
 \description{
 Build a web APP

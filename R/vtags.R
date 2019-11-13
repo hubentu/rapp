@@ -21,6 +21,7 @@ vt_tags <- c("v-app",
              "v-card-title",
              "v-card-subtitle",
              "v-card-actions",
+             "v-card-text",
              "v-carousel",
              "v-chip",
              "v-divider",
@@ -125,7 +126,7 @@ vtag <- function(tagName, children = list(), props = character()){
 removeEmpty <- function(text){
     text <- gsub(" >", ">", text)
     text <- gsub("\n\n", "\n", text)
-    text <- gsub(">(\\w+)[[:blank:]]+</", ">\\1</", text)
+    text <- gsub("(\\w+)[[:blank:]]+</", "\\1</", text)
     text <- gsub("(\\})[[:blank:]]+</", "\\1</", text)
     text <- gsub(">[[:blank:]]+</", "></", text)
     text

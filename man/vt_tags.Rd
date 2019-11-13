@@ -4,7 +4,7 @@
 \name{vt_tags}
 \alias{vt_tags}
 \title{vuetify tags}
-\format{An object of class \code{character} of length 74.}
+\format{An object of class \code{character} of length 76.}
 \usage{
 vt_tags
 }
