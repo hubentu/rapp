@@ -123,3 +123,29 @@ BuildApp(app = "testapp", ui = index,
 ## plotly
 library(ggplot2)
 library(plotly)
+library(htmlwidgets)
+##library(widgetframe)
+ggp <- function(rdat){
+    rdat <- data.frame(rdat = rdat)
+    p <- ggplot(rdat, aes(x = rdat)) + geom_histogram()
+    ggplotly(p)
+}
+ggpsave <- function(...){
+    gg <- ggp(...)
+    saveWidget(gg, file = "index.html", selfcontained = FALSE)
+}
+ui <- card(title = "Test App", text = "{{textA[0]}}",
+           "min-width" = "800",
+           uiList=list(text_field(model="n", label="number"),
+                       vselect(model = "dist", label = "distribution",
+                               change = "gendat"),
+                       data_table(table = "tsum"),
+                       br(),
+                       btn(onClick = "ggp"),
+                       br(),
+                       tag("iframe", c(id = "plotOut", src = "about:blank"))))
+index <- BuildUI(uid = "test", ui)
+BuildApp(app = "testapp", ui = index,
+         Rfun = list(gendat = gendat, ggp = ggp),
+         outType = list(list("text", "text", "table"), "html"),
+         outID = list(list("textA", "rdat", "tsum"), "plotOut"))

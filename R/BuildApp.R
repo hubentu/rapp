@@ -29,27 +29,29 @@ BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = list("plot"), out
         if(sum(names(Rfun)!="") < length(Rfun))
             stop("Rfun should be a named list")
         for(i in seq(Rfun)){
+            dumpFun(fun = Rfun[[i]], fname = names(Rfun)[i],
+                    type = outType[i], path = path, app = app)
             ##browser()
-            ff <- findGlobals(names(Rfun)[i])
-            ff1 <- ff[grepl(".GlobalEnv", sapply(ff, find))]
-            pkgs <- grep("package:", unlist(sapply(ff, find)), value = TRUE)
-            pkgs <- sub("package:", "",
-                        unique(setdiff(pkgs, c("package:base", paste0("package:", app)))))
+            ## ff <- findGlobals(names(Rfun)[i])
+            ## ff1 <- ff[grepl(".GlobalEnv", sapply(ff, find))]
+            ## pkgs <- grep("package:", unlist(sapply(ff, find)), value = TRUE)
+            ## pkgs <- sub("package:", "",
+            ##             unique(setdiff(pkgs, c("package:base", paste0("package:", app)))))
 
-            Rfun1 <- deparse(Rfun[[i]])
-            Rfun1[1] <- paste(names(Rfun)[i], "<-", Rfun1[1])
-            if(length(pkgs) > 0){
-                Rfun1 <- c(paste("#'", names(Rfun)[i]),
-                           paste("#' @import", pkgs),
-                           "#' @export", Rfun1)
-            }else{
-                Rfun1 <- c(paste("#'", names(Rfun)[i]),
-                           "#' @export", Rfun1)
-            }
-            rfile <- file.path(path, "R", paste0(names(Rfun)[i], ".R"))
+            ## Rfun1 <- deparse(Rfun[[i]])
+            ## Rfun1[1] <- paste(names(Rfun)[i], "<-", Rfun1[1])
+            ## if(length(pkgs) > 0){
+            ##     Rfun1 <- c(paste("#'", names(Rfun)[i]),
+            ##                paste("#' @import", pkgs),
+            ##                "#' @export", Rfun1)
+            ## }else{
+            ##     Rfun1 <- c(paste("#'", names(Rfun)[i]),
+            ##                "#' @export", Rfun1)
+            ## }
+            ## rfile <- file.path(path, "R", paste0(names(Rfun)[i], ".R"))
 
-            writeLines(Rfun1, rfile)
-            dump(ff1, rfile, append = TRUE)
+            ## writeLines(Rfun1, rfile)
+            ## dump(ff1, rfile, append = TRUE)
         }
     }
     document(path)
@@ -69,6 +71,54 @@ BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = list("plot"), out
              outType = outType, outID = outID)
     message("Package created: ", path)
     return(path)
+}
+
+dumpFun <- function(fun, fname, type, path, app){
+    ff <- findGlobals(fname)
+    ff1 <- ff[grepl(".GlobalEnv", sapply(ff, find))]
+
+    pkgs <- lapply(sapply(ff, find, USE.NAMES = TRUE),
+                   function(x){
+                       x <- grep("package:", x, value = TRUE)
+                       x <- x[!x %in% c("package:base", paste0("package:", app))]
+                       sub("package:", "", x)
+                   })
+    pkgs <- pkgs[lengths(pkgs) > 0]
+    if(length(pkgs) > 0){
+        impkg <- c()
+        for(i in 1:length(pkgs)){
+            impkg <- c(impkg, paste("#' @importFrom", pkgs[[i]], names(pkgs)[i]))
+        }
+    }
+    Rfun1 <- deparse(fun)
+    if(type == "html"){
+        Rfun1[1] <- paste0(fname, "_ <- ", Rfun1[1])
+    }else{
+        Rfun1[1] <- paste(fname, "<-", Rfun1[1])
+    }
+    if(length(pkgs) > 0){
+        Rfun1 <- c(paste("#'", fname),
+                   impkg,
+                   "#' @export", Rfun1)
+    }else{
+        Rfun1 <- c(paste("#'", fname),
+                   "#' @export", Rfun1)
+    }
+
+    if(type == "html"){
+        sfun <- c(paste0("#' ", fname, "save"),
+                  paste0("#' @importFrom htmlwidgets saveWidget"),
+                  paste0("#' @export"),          
+                  paste0(fname, " <- function(...){"),
+                  paste0("gg <- ", fname, "_(...)"),
+                  "saveWidget(gg, file = 'index.html', selfcontained = FALSE)",
+                  "}")
+        Rfun1 <- c(Rfun1, sfun)
+    }
+    
+    rfile <- file.path(path, "R", paste0(fname, ".R"))    
+    writeLines(Rfun1, rfile)
+    dump(ff1, rfile, append = TRUE)
 }
 
 ## lst <- list(InputText("n", "count"),
@@ -97,9 +147,9 @@ renderUI <- function(ui, Rfun = list(), dataList = list(), methodList = list(), 
             htmlDependency("jquery", "1.11.1",
                            c(href = "https://code.jquery.com"),
                            script = "jquery-1.11.1.min.js"),
-            htmlDependency("opencpu", "0.4",
+            htmlDependency("opencpu", "0.5",
                            c(href = "https://cdn.opencpu.org"),
-                           script = "opencpu-0.4.js"))
+                           script = "opencpu-0.5.js"))
         deps <- c(deps, odeps)
         ## ui <- tagList(ui, tags$head(singleton(tags$script(src="lib/ocpu.js"))))
     }
@@ -160,7 +210,16 @@ vueJS <- function(ui, Rfun, outType = list("plot"), outID = list("plotOut"), dat
         Args <- gsub("\"", "", toJSON(argL, auto_unbox = T))
 
         if(is.character(outType[[j]]) && outType[[j]] == "plot"){
-            rMeths[j] <- paste0(names(Rfun)[j], ': function () {var req = $("#', outID[[j]], '").rplot("', names(Rfun)[j], '", ', Args, ');}')
+            rMeths[j] <- paste0(names(Rfun)[j],
+                                ': function () {var req = $("#',
+                                outID[[j]], '").rplot("',
+                                names(Rfun)[j], '", ', Args, ');}')
+        }else if(is.character(outType[[j]]) && outType[[j]] == "html"){
+            rMeths[j] <- paste0(names(Rfun)[j],
+                                ': function () {var req = ocpu.call("',
+                                names(Rfun)[j], '", ', Args,
+                                ', function(session){$("iframe#', outID[[j]],
+                                '").attr("src", session.getFileURL("index.html"));}', ');}')
         }else if(is.character(outType[[j]]) && outType[[j]] == "text"){
             rMeths[j] <- paste0(names(Rfun)[j],
                                 ': function () {var self = this; var req = ocpu.rpc("',
