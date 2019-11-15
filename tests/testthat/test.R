@@ -143,7 +143,7 @@ ui <- card(title = "Test App", text = "{{textA[0]}}",
                        br(),
                        btn(onClick = "ggp"),
                        br(),
-                       tag("iframe", c(id = "plotOut", src = "about:blank"))))
+                       iframe(id = "plotOut")))
 index <- BuildUI(uid = "test", ui)
 BuildApp(app = "testapp", ui = index,
          Rfun = list(gendat = gendat, ggp = ggp),

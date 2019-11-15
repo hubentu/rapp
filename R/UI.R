@@ -59,3 +59,9 @@ data_table <- function(table, class = "elevation-1", items_per_page = 5, ...){
                                  ":items-per-page" = items_per_page,
                                  "class" = class, ...))
 }
+
+iframe <- function(id = NULL, src = "about:blank",
+                   height = "600", width = "800", frameborder = "0", ...){
+    vtag("iframe", props = c(id = id, src = src, height = height,
+                             width = width, frameborder = frameborder, ...))
+}
