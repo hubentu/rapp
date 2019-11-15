@@ -80,7 +80,7 @@ dumpFun <- function(fun, fname, type, path, app){
     pkgs <- lapply(sapply(ff, find, USE.NAMES = TRUE),
                    function(x){
                        x <- grep("package:", x, value = TRUE)
-                       x <- x[!x %in% c("package:base", paste0("package:", app))]
+                       x <- x[!x %in% c("package:base", "package:rapp", paste0("package:", app))]
                        sub("package:", "", x)
                    })
     pkgs <- pkgs[lengths(pkgs) > 0]

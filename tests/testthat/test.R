@@ -149,3 +149,32 @@ BuildApp(app = "testapp", ui = index,
          Rfun = list(gendat = gendat, ggp = ggp),
          outType = list(list("text", "text", "table"), "html"),
          outID = list(list("textA", "rdat", "tsum"), "plotOut"))
+
+## v-html not work
+library(htmltools)
+ggh <- function(rdat){
+    rdat <- data.frame(rdat = rdat)
+    p <- ggplot(rdat, aes(x = rdat)) + geom_histogram()
+    gg <- ggplotly(p)
+    renderTags(gg)$html
+}
+
+ui <- card(title = "Test App", text = "{{textA[0]}}",
+           "min-width" = "800",
+           uiList=list(text_field(model="n", label="number"),
+                       vselect(model = "dist", label = "distribution",
+                               change = "gendat"),
+                       data_table(table = "tsum"),
+                       br(),
+                       btn(onClick = "ggh"),
+                       br(),
+                       vtags$v_card(list(div("v-html"="plotOut")))
+                       ))
+index <- BuildUI(uid = "test", ui)
+BuildApp(app = "testapp", ui = index,
+         Rfun = list(gendat = gendat, ggh = ggh),
+         outType = list(list("text", "text", "table"), "text"),
+         outID = list(list("textA", "rdat", "tsum"), "plotOut"))
+
+## next
+
