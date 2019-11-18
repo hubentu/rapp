@@ -81,8 +81,8 @@ ui <- card(title = "test", "min-width" = "800", class = "mx-auto",
                        btn(onClick = "randomplot"),
                        data_table(table = "tsum"),
                        vimg(id = "plotOut", height = "600")))
-index <- BuildUI(uid = "test", ui)
-BuildApp(app = "testapp", ui = index,
+##index <- BuildUI(uid = "test", ui)
+BuildApp(app = "testapp", uid = "test", ui = ui,
          Rfun = list(gentab = gentab, randomplot = randomplot),
          outType = c("table", "plot"),
          outID = c("tsum", "plotOut"))
@@ -96,8 +96,8 @@ ui <- card(title = "test", "min-width" = "800", class = "mx-auto",
                        div("{{textA[0]}}"),
                        data_table(table = "tsum"),
                        vimg(id = "plotOut", height = "600")))
-index <- BuildUI(uid = "test", ui)
-BuildApp(app = "testapp", ui = index,
+##index <- BuildUI(uid = "test", ui)
+BuildApp(app = "testapp", ui = index, uid = "test",
          Rfun = list(genstr = genstr, gentab = gentab, randomplot = randomplot),
          outType = list("text", "table", "plot"),
          outID = list("textA", "tsum", "plotOut"))
@@ -113,8 +113,8 @@ ui <- card(title = "Test App", text = "{{textA[0]}}",
                        btn(onClick = "datplot"),
                        br(),
                        vimg(id = "plotOut", height = "600")))
-index <- BuildUI(uid = "test", ui)
-BuildApp(app = "testapp", ui = index,
+##index <- BuildUI(uid = "test", ui)
+BuildApp(app = "testapp", ui = index, uid = "test",
          Rfun = list(gendat = gendat, datplot = datplot),
          outType = list(list("text", "text", "table"), "plot"),
          outID = list(list("textA", "rdat", "tsum"), "plotOut"))
@@ -144,8 +144,8 @@ ui <- card(title = "Test App", text = "{{textA[0]}}",
                        btn(onClick = "ggp"),
                        br(),
                        iframe(id = "plotOut")))
-index <- BuildUI(uid = "test", ui)
-BuildApp(app = "testapp", ui = index,
+## index <- BuildUI(uid = "test", ui)
+BuildApp(app = "testapp", ui = index, uid = "test",
          Rfun = list(gendat = gendat, ggp = ggp),
          outType = list(list("text", "text", "table"), "html"),
          outID = list(list("textA", "rdat", "tsum"), "plotOut"))
@@ -170,8 +170,8 @@ ui <- card(title = "Test App", text = "{{textA[0]}}",
                        br(),
                        vtags$v_card(list(div("v-html"="plotOut")))
                        ))
-index <- BuildUI(uid = "test", ui)
-BuildApp(app = "testapp", ui = index,
+## index <- BuildUI(uid = "test", ui)
+BuildApp(app = "testapp", ui = index, uid = "test",
          Rfun = list(gendat = gendat, ggh = ggh),
          outType = list(list("text", "text", "table"), "text"),
          outID = list(list("textA", "rdat", "tsum"), "plotOut"))

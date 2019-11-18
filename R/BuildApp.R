@@ -5,7 +5,7 @@
 #' @importFrom codetools findGlobals
 #' @importFrom utils find
 #' @include vtags.R
-BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = list("plot"), outID = list("plotOut"), dataList = list(), methodList = list()){
+BuildApp <- function(app, ui, uid, Rfun, dir = tempdir(), outType = list("plot"), outID = list("plotOut"), dataList = list(), methodList = list()){
     path <- file.path(dir, app)
     if(!dir.exists(path)){
         message("creating package ", app)
@@ -66,7 +66,7 @@ BuildApp <- function(app, ui, Rfun, dir = tempdir(), outType = list("plot"), out
     ## save_html(UI,
     ##           file = file.path(dirname(libdir),
     ##                            paste0(deparse(substitute(ui)), ".html")))
-    renderUI(ui, Rfun = Rfun, dataList = dataList, methodList = methodList,
+    renderUI(ui, uid, Rfun = Rfun, dataList = dataList, methodList = methodList,
              outdir = wwwdir, vuejs = file.path("lib", paste0(app, ".js")),
              outType = outType, outID = outID)
     message("Package created: ", path)
@@ -131,7 +131,7 @@ dumpFun <- function(fun, fname, type, path, app){
 #' @param outputPanel output tag list.
 #' @importFrom jsonlite toJSON
 #' @export
-renderUI <- function(ui, Rfun = list(), dataList = list(), methodList = list(), outdir,
+renderUI <- function(ui, uid, Rfun = list(), dataList = list(), methodList = list(), outdir,
                      vuejs = "lib/app.js", opencpu = TRUE, outType = list("plot"),
                      outID = list("plotOut")){
     deps <- list(
@@ -144,10 +144,10 @@ renderUI <- function(ui, Rfun = list(), dataList = list(), methodList = list(), 
                        stylesheet = "vuetify.min.css"),
         htmlDependency("materialdesignicons", "4",
                        c(href = "https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css"),
-                       stylesheet = "materialdesignicons.min.css"),
-        htmlDependency("MaterialIcons", "1",
-                       c(href = "https://fonts.googleapis.com/css?family=Material+Icons"),
-                       stylesheet = ""))
+                       stylesheet = "materialdesignicons.min.css"))
+        ## htmlDependency("MaterialIcons", "1",
+        ##                c(href = "https://fonts.googleapis.com/css?family=Material+Icons"),
+        ##                stylesheet = ""))
     if(opencpu){
         odeps <- list(
             htmlDependency("jquery", "1.11.1",
@@ -159,7 +159,8 @@ renderUI <- function(ui, Rfun = list(), dataList = list(), methodList = list(), 
         deps <- c(deps, odeps)
         ## ui <- tagList(ui, tags$head(singleton(tags$script(src="lib/ocpu.js"))))
     }
-    uid <- ui$attribs$id
+
+    ui <- div(id = uid, vtags$v_app(list(ui)))
     vbind <- c()
     for(i in seq(outType)){
         if(is.character(outType[[i]]) && outType[[i]] == "text"){

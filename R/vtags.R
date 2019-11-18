@@ -33,6 +33,10 @@ vt_tags <- c("v-app",
              "v-chip-group",
              "v-item",
              "v-item-group",
+             "v-list-item",
+             "v-list-item-icon",
+             "v-list-item-content",
+             "v-list-item-title",
              "v-list-item-group",
              "v-slide-group",
              "v-window",
@@ -79,7 +83,8 @@ vt_tags <- c("v-app",
              "v-treeview",
              "v-layout",
              "v-row",
-             "v-col")
+             "v-col",
+             "v-spacer")
 names(vt_tags) <- gsub("-", "_", vt_tags)
 
 .valid.children <- function(object){

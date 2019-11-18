@@ -1,6 +1,6 @@
-BuildUI <- function(uid = character(), ...){
-    div(id = uid, vtags$v_app(list(...)))
-}
+## BuildUI <- function(uid = character(), ...){
+##     div(id = uid, vtags$v_app(list(...)))
+## }
 
 card <- function(title = NULL, subtitle = NULL, text = NULL,
                  uiList = list(), uiPos = "top", class = "mx-auto", ...){
@@ -53,6 +53,11 @@ btn <- function(onClick = NULL, label = "Submit", ...){
     vtags$v_btn(label, props = c(onClick, ...))
 }
 
+btn_icon <- function(icon = "mdi-settings", ...){
+    btn(icon = TRUE, ..., 
+        label = list(vtags$v_icon(icon)))
+}
+
 data_table <- function(table, class = "elevation-1", items_per_page = 5, ...){
     vtags$v_data_table(props = c(":headers" = paste0(table, "headers"),
                                  ":items" = table,
@@ -66,3 +71,29 @@ iframe <- function(id = NULL, src = "about:blank",
                              width = width, frameborder = frameborder, ...))
 }
 
+vspacer <- function(){
+    vtags$v_spacer()
+}
+
+searchBar <- function(label = "search", ...){
+    text_field(flat = TRUE,
+               "solo-inverted" = TRUE,
+               "hide-details" = TRUE,
+               "prepend-inner-icon" = "mdi-magnify",
+               label = label, ...)
+}
+
+vheader <- function(title = character(), color = "blue", title.width = "300px", ui = list()){
+    vlist <- list(
+        vtags$v_app_bar_nav_icon(props = c("@click.stop" = "drawer = !drawer")),
+        vtags$v_toolbar_title(title,
+                              props = c("style" = paste0(
+                                            "width: ",
+                                            title.width))))
+    vlist <- c(vlist, ui)
+    vtags$v_app_bar(props = c(":clipped-left" = "$vuetify.breakpoint.lgAndUp",
+                              color = color,
+                              app = TRUE,
+                              dark = TRUE),
+                    vlist)
+}
