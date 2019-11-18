@@ -11,7 +11,7 @@ ui <- c(
                                                 vtags$v_toolbar_title("Contacts"), 
                                                 vtags$v_text_field(props = c(flat = TRUE,
                                                                              "hide-details" = TRUE,
-                                                                             "prepend-inner-icon" = TRUE,
+                                                                             "prepend-inner-icon" = "search",
                                                                              label = "search")
                                                                    )
                                             )

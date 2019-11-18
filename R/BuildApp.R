@@ -141,7 +141,13 @@ renderUI <- function(ui, Rfun = list(), dataList = list(), methodList = list(), 
         htmlDependency("vuetify", "2.0.2",
                        c(href = "https://cdn.jsdelivr.net/npm/vuetify@2.0.2/dist"),
                        script = "vuetify.min.js",
-                       stylesheet = "vuetify.min.css"))
+                       stylesheet = "vuetify.min.css"),
+        htmlDependency("materialdesignicons", "4",
+                       c(href = "https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css"),
+                       stylesheet = "materialdesignicons.min.css"),
+        htmlDependency("MaterialIcons", "1",
+                       c(href = "https://fonts.googleapis.com/css?family=Material+Icons"),
+                       stylesheet = ""))
     if(opencpu){
         odeps <- list(
             htmlDependency("jquery", "1.11.1",
