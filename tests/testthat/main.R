@@ -29,12 +29,13 @@ ui <- vheader(title = "contact", ui = list(
                                      btn_icon(icon = "mdi-settings")))
 renderUI(ui, uid = "header", dataList = list(drawer = ""), outdir = "/tmp/test")
 
-vdrawer <- function(titles, icons, urls){
+vdrawer <- function(titles, icons, routes){
     listItem <- vtags$v_list_item(
                           props = c(
                               "v-for" = paste("item in dItems"),
                               ":key" = "item.title",
-                              "@click" = "item.url"),
+                              router = TRUE,
+                              ":to" = "item.route"),
                           list(
                               vtags$v_list_item_icon(
                                         list(vtags$v_icon("{{item.icon}}"))
@@ -56,7 +57,7 @@ vdrawer <- function(titles, icons, urls){
     for(i in seq(titles)){
         items[[i]] <- list(title = titles[i],
                            icon = icons[i],
-                           url = urls[i])
+                           route = routes[i])
     }
     data <- list(drawer = "true",
                  dItems = items)
@@ -67,6 +68,6 @@ vdrawer <- function(titles, icons, urls){
 vh <- vheader(title = "title")
 vd <- vdrawer(titles = c("Home", "Account", "Users"),
               icons = c("mdi-home-city", "mdi-account", "mdi-account-group-outline"),
-              urls = c("#a", "#b", "#c"))
+              route = c("#a", "#b", "#c"))
 
-renderUI(ui = c(vh, vd$ui), uid = "header", dataList = vd$data, outdir = "/tmp/test")
+renderUI(ui = list(vh, vd$ui), uid = "header", dataList = vd$data, outdir = "/tmp/test")

@@ -1,0 +1,1 @@
+Vue.component("headerapp", {template: "#header", data() {return {"drawer":"true","dItems":[{"title":"Home","icon":"mdi-home-city","route":"#a"},{"title":"Account","icon":"mdi-account","route":"#b"},{"title":"Users","icon":"mdi-account-group-outline","route":"#c"}]}} ,methods: {}}); var vm = new Vue({el: "#headerApp", vuetify: new Vuetify()});
