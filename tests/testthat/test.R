@@ -114,7 +114,7 @@ ui <- card(title = "Test App", text = "{{textA[0]}}",
                        br(),
                        vimg(id = "plotOut", height = "600")))
 ##index <- BuildUI(uid = "test", ui)
-BuildApp(app = "testapp", ui = index, uid = "test",
+BuildApp(app = "testapp", ui, uid = "test",
          Rfun = list(gendat = gendat, datplot = datplot),
          outType = list(list("text", "text", "table"), "plot"),
          outID = list(list("textA", "rdat", "tsum"), "plotOut"))
@@ -145,7 +145,7 @@ ui <- card(title = "Test App", text = "{{textA[0]}}",
                        br(),
                        iframe(id = "plotOut")))
 ## index <- BuildUI(uid = "test", ui)
-BuildApp(app = "testapp", ui = index, uid = "test",
+BuildApp(app = "testapp", ui = ui, uid = "test",
          Rfun = list(gendat = gendat, ggp = ggp),
          outType = list(list("text", "text", "table"), "html"),
          outID = list(list("textA", "rdat", "tsum"), "plotOut"))
@@ -177,4 +177,3 @@ BuildApp(app = "testapp", ui = index, uid = "test",
          outID = list(list("textA", "rdat", "tsum"), "plotOut"))
 
 ## next
-

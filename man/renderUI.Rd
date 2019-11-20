@@ -6,6 +6,7 @@
 \usage{
 renderUI(
   ui,
+  uid,
   Rfun = list(),
   dataList = list(),
   methodList = list(),

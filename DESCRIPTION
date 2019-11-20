@@ -18,5 +18,6 @@ Collate:
     'vtags.R'
     'BuildApp.R'
     'UI.R'
+    'dashboard.R'
 Suggests: 
     testthat

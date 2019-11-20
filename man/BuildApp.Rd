@@ -7,6 +7,7 @@
 BuildApp(
   app,
   ui,
+  uid,
   Rfun,
   dir = tempdir(),
   outType = list("plot"),
