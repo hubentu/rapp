@@ -75,7 +75,7 @@ vspacer <- function(){
     vtags$v_spacer()
 }
 
-searchBar <- function(label = "search", ...){
+searchBox <- function(label = "search", ...){
     text_field(flat = TRUE,
                "solo-inverted" = TRUE,
                "hide-details" = TRUE,
@@ -96,4 +96,43 @@ vheader <- function(title = character(), color = "blue", title.width = "300px", 
                               app = TRUE,
                               dark = TRUE),
                     vlist)
+}
+
+dashBar <- function(title, title.width = "300px", color = "blue", headerUI = list(),
+                    sideTitles = c(), sideIcons = c(), sidePaths = c()){
+    vh <- vheader(color = color, title = title,
+                  title.width = title.width, ui = headerUI)
+    listItem <- vtags$v_list_item(
+                          props = c(
+                              "v-for" = paste("item in dItems"),
+                              ":key" = "item.title",
+                              router = TRUE,
+                              ":to" = "item.path"),
+                          list(
+                              vtags$v_list_item_icon(
+                                        list(vtags$v_icon("{{item.icon}}"))
+                                    ),
+                              vtags$v_list_item_content(
+                                        list(vtags$v_list_item_title("{{item.title}}"))
+                                    )))
+
+    ui <- vtags$v_navigation_drawer(
+                    props = c("v-model" = "drawer",
+                              ":clipped"="$vuetify.breakpoint.lgAndUp",
+                              app = TRUE),
+                    list(
+                        vtags$v_list(
+                                  props = c(dense = TRUE, nav = TRUE),
+                                  list(listItem))
+                    ))
+    items <- list()
+    for(i in seq(sideTitles)){
+        items[[i]] <- list(title = sideTitles[i],
+                           icon = sideIcons[i],
+                           path = sidePaths[i])
+    }
+    data <- list(drawer = "true",
+                 dItems = items)
+    return(list(ui = list(vh, ui), data = data))
+    
 }

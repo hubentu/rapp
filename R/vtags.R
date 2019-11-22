@@ -19,6 +19,7 @@ vt_tags <- c("v-app",
              "v-btn",
              "v-calendar",
              "v-container",
+             "v-content",
              "v-card",
              "v-card-title",
              "v-card-subtitle",
@@ -84,7 +85,8 @@ vt_tags <- c("v-app",
              "v-layout",
              "v-row",
              "v-col",
-             "v-spacer")
+             "v-spacer",
+             "router-view")
 names(vt_tags) <- gsub("-", "_", vt_tags)
 
 .valid.children <- function(object){

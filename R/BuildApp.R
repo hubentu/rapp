@@ -5,7 +5,7 @@
 #' @importFrom codetools findGlobals
 #' @importFrom utils find
 #' @include vtags.R
-BuildApp <- function(app, ui, uid, Rfun, dir = tempdir(), outType = list("plot"), outID = list("plotOut"), dataList = list(), methodList = list()){
+BuildApp <- function(app, ui, sidePages = list(), Rfun = list(), dir = tempdir(), outType = list("plot"), outID = list("plotOut"), dataList = list(), methodList = list()){
     path <- file.path(dir, app)
     if(!dir.exists(path)){
         message("creating package ", app)
@@ -66,9 +66,14 @@ BuildApp <- function(app, ui, uid, Rfun, dir = tempdir(), outType = list("plot")
     ## save_html(UI,
     ##           file = file.path(dirname(libdir),
     ##                            paste0(deparse(substitute(ui)), ".html")))
-    renderUI(ui, uid, Rfun = Rfun, dataList = dataList, methodList = methodList,
-             outdir = wwwdir, vuejs = file.path("lib", paste0(app, ".js")),
-             outType = outType, outID = outID)
+    if(length(sidePages) > 0){
+        renderIndex(main = ui, sidePages = sidePages, outdir = wwwdir)
+    }else{
+        renderUI(ui = ui, uid = app, Rfun = Rfun,
+                 dataList = dataList, methodList = methodList,
+                 outdir = wwwdir, vuejs = file.path("lib", paste0(app, ".js")),
+                 outType = outType, outID = outID)
+    }
     message("Package created: ", path)
     return(path)
 }
@@ -118,7 +123,9 @@ dumpFun <- function(fun, fname, type, path, app){
     
     rfile <- file.path(path, "R", paste0(fname, ".R"))    
     writeLines(Rfun1, rfile)
-    dump(ff1, rfile, append = TRUE)
+    if(length(ff1) > 0){
+        dump(ff1, rfile, append = TRUE)
+    }
 }
 
 ## lst <- list(InputText("n", "count"),
@@ -271,7 +278,7 @@ vueJS <- function(ui, Rfun, outType = list("plot"), outID = list("plotOut"), dat
                 if(outType[[j]][m] == "table"){
                     m2 <- paste0('let keys = Object.keys(Object.values(dat)[',m-1,'][0]);let hd=[];',
                                  'for(i=0;i<keys.length;i++){hd[i]={text: keys[i], value: keys[i]}};',
-                                 'this.$refs.testRef.', outID[[j]][m], 'headers=hd;')
+                                 'this.$refs.', tmplID, 'Ref.', outID[[j]][m], 'headers=hd;')
                     m1[m] <- paste(m1[m], m2)
 
                     ilist <- list(list(), list())

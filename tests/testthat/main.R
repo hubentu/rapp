@@ -29,45 +29,41 @@ ui <- vheader(title = "contact", ui = list(
                                      btn_icon(icon = "mdi-settings")))
 renderUI(ui, uid = "header", dataList = list(drawer = ""), outdir = "/tmp/test")
 
-vdrawer <- function(titles, icons, routes){
-    listItem <- vtags$v_list_item(
-                          props = c(
-                              "v-for" = paste("item in dItems"),
-                              ":key" = "item.title",
-                              router = TRUE,
-                              ":to" = "item.route"),
-                          list(
-                              vtags$v_list_item_icon(
-                                        list(vtags$v_icon("{{item.icon}}"))
-                                    ),
-                              vtags$v_list_item_content(
-                                        list(vtags$v_list_item_title("{{item.title}}"))
-                                    )))
 
-    ui <- vtags$v_navigation_drawer(
-                    props = c("v-model" = "drawer",
-                              ":clipped"="$vuetify.breakpoint.lgAndUp",
-                              app = TRUE),
-                    list(
-                        vtags$v_list(
-                                  props = c(dense = TRUE, nav = TRUE),
-                                  list(listItem))
-                    ))
-    items <- list()
-    for(i in seq(titles)){
-        items[[i]] <- list(title = titles[i],
-                           icon = icons[i],
-                           route = routes[i])
-    }
-    data <- list(drawer = "true",
-                 dItems = items)
-    return(list(ui = ui, data = data))
-    
-}
 
-vh <- vheader(title = "title")
-vd <- vdrawer(titles = c("Home", "Account", "Users"),
-              icons = c("mdi-home-city", "mdi-account", "mdi-account-group-outline"),
-              route = c("#a", "#b", "#c"))
+mainbars <- dashBar(title = "test",
+                sideTitles = c("Home", "Plot"),
+                sideIcons = c("mdi-home-city", "mdi-chart-line"),
+                sidePath = c("home", "plot"))
+mainbars <- dashBar(title = "test",
+                sideTitles = c("Home"),
+                sideIcons = c("mdi-home-city"),
+                sidePath = c("plot"))
 
-renderUI(ui = list(vh, vd$ui), uid = "header", dataList = vd$data, outdir = "/tmp/test")
+plotui <- card(title = "Test App", text = "{{textA[0]}}",
+               "min-width" = "800",
+               uiList=list(text_field(model="n", label="number"),
+                           vselect(model = "dist", label = "distribution",
+                                   change = "gendat"),
+                           data_table(table = "tsum"),
+                           br(),
+                           btn(onClick = "datplot"),
+                           br(),
+                           vimg(id = "plotOut", height = "600")))
+plotPage <- renderTemplate(plotui,
+                           Rfun = list(gendat = gendat, datplot = datplot),
+                           outType = list(list("text", "text", "table"), "plot"),
+                           outID = list(list("textA", "rdat", "tsum"), "plotOut"))
+
+home <- renderTemplate(list(div(h1("Hello world"))))
+
+renderIndex(main = mainbars, sidePages = list(home = home, plot = plotPage),
+            Rfun = list(gendat = gendat, datplot = datplot),
+            outType = list(list("text", "text", "table"), "plot"),
+            outID = list(list("textA", "rdat", "tsum"), "plotOut"),
+            outdir = "/tmp/dash")
+
+BuildApp(app= "dash", ui = mainbars, sidePage = list(home = home, plot = plotPage),
+         Rfun = list(gendat = gendat, datplot = datplot),
+         dir = tempdir())
+

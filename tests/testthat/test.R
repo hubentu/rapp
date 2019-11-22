@@ -97,7 +97,7 @@ ui <- card(title = "test", "min-width" = "800", class = "mx-auto",
                        data_table(table = "tsum"),
                        vimg(id = "plotOut", height = "600")))
 ##index <- BuildUI(uid = "test", ui)
-BuildApp(app = "testapp", ui = index, uid = "test",
+BuildApp(app = "testapp", ui = ui,
          Rfun = list(genstr = genstr, gentab = gentab, randomplot = randomplot),
          outType = list("text", "table", "plot"),
          outID = list("textA", "tsum", "plotOut"))
@@ -114,7 +114,7 @@ ui <- card(title = "Test App", text = "{{textA[0]}}",
                        br(),
                        vimg(id = "plotOut", height = "600")))
 ##index <- BuildUI(uid = "test", ui)
-BuildApp(app = "testapp", ui, uid = "test",
+BuildApp(app = "testapp", ui,
          Rfun = list(gendat = gendat, datplot = datplot),
          outType = list(list("text", "text", "table"), "plot"),
          outID = list(list("textA", "rdat", "tsum"), "plotOut"))
@@ -145,7 +145,7 @@ ui <- card(title = "Test App", text = "{{textA[0]}}",
                        br(),
                        iframe(id = "plotOut")))
 ## index <- BuildUI(uid = "test", ui)
-BuildApp(app = "testapp", ui = ui, uid = "test",
+BuildApp(app = "testapp", ui = ui,
          Rfun = list(gendat = gendat, ggp = ggp),
          outType = list(list("text", "text", "table"), "html"),
          outID = list(list("textA", "rdat", "tsum"), "plotOut"))
@@ -171,7 +171,7 @@ ui <- card(title = "Test App", text = "{{textA[0]}}",
                        vtags$v_card(list(div("v-html"="plotOut")))
                        ))
 ## index <- BuildUI(uid = "test", ui)
-BuildApp(app = "testapp", ui = index, uid = "test",
+BuildApp(app = "testapp", ui = ui, uid = "test",
          Rfun = list(gendat = gendat, ggh = ggh),
          outType = list(list("text", "text", "table"), "text"),
          outID = list(list("textA", "rdat", "tsum"), "plotOut"))

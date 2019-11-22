@@ -7,8 +7,8 @@
 BuildApp(
   app,
   ui,
-  uid,
-  Rfun,
+  sidePages = list(),
+  Rfun = list(),
   dir = tempdir(),
   outType = list("plot"),
   outID = list("plotOut"),
