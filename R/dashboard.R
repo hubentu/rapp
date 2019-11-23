@@ -1,13 +1,9 @@
 vueTmpJS <- function(Rfun, outType = list("plot"), outID = list("plotOut"),
                      dataList = list(), methodList = list()){
     ##browser()
-    tmplID <- "appRef.$refs.route"
-    ## tmplID <- ui$attribs$id
-    ## appID <- paste0(tmplID, "App")
-
     args <- c()
     rMeths <- c()
-    vMeths <- c()
+
     for(j in seq(Rfun)){
         arg1 <- lapply(formals(Rfun[[j]]),
                        function(x){
@@ -38,11 +34,9 @@ vueTmpJS <- function(Rfun, outType = list("plot"), outID = list("plotOut"),
             rMeths[j] <- paste0(names(Rfun)[j],
                                 ': function () {var self = this; var req = ocpu.rpc("',
                                 names(Rfun)[j], '", ', Args,
-                                ', function(output){ self.$emit("',
-                                tolower(outID[[j]]), '-gen", output) });}')
-            vMeths[j] <- paste0(tolower(outID[[j]]),
-                                'gen: function(text){this.$refs.',
-                                tmplID, 'Ref.', outID[[j]],' = text}')
+                                ', function(output){',
+                                'self.', outID[[j]], '=Object.values(output)',
+                                '});}')
             ilist <- list("")
             names(ilist) <- outID[[j]]
             args <- c(args, ilist)
@@ -50,14 +44,11 @@ vueTmpJS <- function(Rfun, outType = list("plot"), outID = list("plotOut"),
             rMeths[j] <- paste0(names(Rfun)[j],
                                 ': function () {var self = this; var req = ocpu.rpc("',
                                 names(Rfun)[j], '", ', Args,
-                                ', function(output){ self.$emit("',
-                                tolower(outID[[j]]), '-gen", output) });}')
-            vMeths[j] <- paste0(tolower(outID[[j]]),
-                                'gen: function(table){this.$refs.',
-                                tmplID, 'Ref.', outID[[j]],' = table;',
+                                ', function(output){',
+                                'self.', outID[[j]],'=Object.values(output);',
                                 'let keys = Object.keys(table[0]);let hd=[];',
                                 'for(i=0;i<keys.length;i++){hd[i]={text: keys[i], value: keys[i]}};',
-                                'this.$refs.testRef.', outID[[j]], 'headers=hd}')
+                                'self.', outID[[j]], 'headers=hd', "})}")
             ilist <- list(list(), list())
             names(ilist) <- c(paste0(outID[[j]], "headers"), outID[[j]])
             args <- c(args, ilist)
@@ -65,19 +56,14 @@ vueTmpJS <- function(Rfun, outType = list("plot"), outID = list("plotOut"),
             rMeths[j] <- paste0(names(Rfun)[j],
                                 ': function () {var self = this; var req = ocpu.rpc("',
                                 names(Rfun)[j], '", ', Args,
-                                ', function(output){ self.$emit("',
-                                tolower(paste(unlist(outID[[j]]), collapse = "")),
-                                '-gen", output) });}')
-            
-            vMeths[j] <- paste0(paste(unlist(tolower(outID[[j]])), collapse = ""),
-                       'gen: function(dat){')
+                                ', function(output){')
             m1 <- c()
             for(m in seq(outType[[j]])){
-                m1[m] <- paste0('this.$refs.', tmplID, 'Ref.', outID[[j]][m],'=Object.values(dat)[',m-1,'];')
+                m1[m] <- paste0('self.',outID[[j]][m],'=Object.values(output)[',m-1,'];')
                 if(outType[[j]][m] == "table"){
-                    m2 <- paste0('let keys = Object.keys(Object.values(dat)[',m-1,'][0]);let hd=[];',
+                    m2 <- paste0('let keys = Object.keys(Object.values(output)[',m-1,'][0]);let hd=[];',
                                  'for(i=0;i<keys.length;i++){hd[i]={text: keys[i], value: keys[i]}};',
-                                 'this.$refs.testRef.', outID[[j]][m], 'headers=hd;')
+                                 'self.', outID[[j]][m], 'headers=hd;')
                     m1[m] <- paste(m1[m], m2)
 
                     ilist <- list(list(), list())
@@ -89,10 +75,7 @@ vueTmpJS <- function(Rfun, outType = list("plot"), outID = list("plotOut"),
                     args <- c(args, ilist)
                 }
             }
-            vMeths[j] <- paste0(paste(c(vMeths[j], m1), collapse = ""), "}")
-        }
-        if(!is.na(vMeths[j])){
-            names(vMeths)[j] <- paste0(paste(tolower(outID[[j]]), collapse = ""), "-gen")
+            rMeths[j] <- paste0(paste(c(rMeths[j], m1), collapse = ""), "})}")
         }
     }
 
@@ -114,23 +97,13 @@ vueTmpJS <- function(Rfun, outType = list("plot"), outID = list("plotOut"),
     if(methodList != ""){
         methodList <- paste0('methods: {', methodList, '}')
         tmplJS <- paste0('module.exports = {', Dat, ',', methodList, '}')
-    }else{
+    }else if(length(dataList) > 0){
         tmplJS <- paste0('module.exports = {', Dat, '}')
-    }
-
-    ##tmplJS <- paste0('Vue.component("', tolower(appID), '", {template: "#', tmplID, '", ', Dat, ' ,', methodList, '});')
-    ## vjs <- paste0('var vm = new Vue({el: "#', appID, '", vuetify: new Vuetify()});')
-    if(!is.null(vMeths)){
-        ## vmeth <- paste0('methods: {', paste(na.omit(vMeths), collapse = ","), '}')
-        vmeth <- paste(na.omit(vMeths), collapse = ",")
-        names(vmeth) <- paste(names(na.omit(vMeths)), collapse = ",")
-        ## vjs <- paste0(sub("});$", ",", vjs), vmeth, "});")
     }else{
-        vmeth  <- NULL
+        tmplJS <- NULL
     }
-    list(tmplJS = tmplJS, vmethod = vmeth)
+    return(HTML(tmplJS))
 }
-
 
 renderTemplate <- function(ui, Rfun = list(),
                            outType = list(), outID = list(), app = FALSE,
@@ -144,8 +117,11 @@ renderTemplate <- function(ui, Rfun = list(),
         vhtml <- tags$template(div(ui))
     }
     js <- vueTmpJS(Rfun, outType, outID, dataList, methodList)
-    list(html = tagList(vhtml, tags$script(paste0("\n", js$tmplJS, "\n"))),
-         js = js$vmethod)
+    if(nchar(js) == 0){
+        vhtml
+    }else{
+        tagList(vhtml, tags$script(js))
+    }
 }
 
 vdeps <- function(opencpu){
@@ -204,14 +180,15 @@ renderIndex <- function(uid = "main", main, sidePages = list(),
     ##         names(vbind)[i] <- paste0("@", paste(tolower(unlist(outID[[i]])), collapse = "-"), "-gen")
     ##     }
     ## }
-    vfuns <- unlist(lapply(sidePages, function(x)names(x$js)))
-    if(length(vfuns) > 0){
-        vfuns <- unlist(strsplit(vfuns, split = ","))
-        vbind <- sub("-gen$", "gen", vfuns)
-        names(vbind) <- paste0("@", vfuns)
-    }
-    atag <- tag(tolower(paste0(uid, "app")),
-                na.omit(c(vbind, ref = "appRef")))
+    ## vfuns <- unlist(lapply(sidePages, function(x)names(x$js)))
+    ## if(length(vfuns) > 0){
+    ##     vfuns <- unlist(strsplit(vfuns, split = ","))
+    ##     vbind <- sub("-gen$", "gen", vfuns)
+    ##     names(vbind) <- paste0("@", vfuns)
+    ## }
+    ## atag <- tag(tolower(paste0(uid, "app")),
+    ##             na.omit(c(vbind, ref = "appRef")))
+    atag <- tag(tolower(paste0(uid, "app")), c(ref = "appRef"))
     dir.create(file.path(outdir, "lib"),
                showWarnings = FALSE, recursive = TRUE)
     dir.create(file.path(outdir, "views"),
@@ -237,19 +214,19 @@ renderIndex <- function(uid = "main", main, sidePages = list(),
     routes <- paste0('const routes = ', routes,
                      "; const router = new VueRouter({routes})")
     
-    vmeths <- unlist(lapply(sidePages, function(x)x$js))
-    if(length(vmeths) > 0){
-        vMeths <- paste0(', methods: {', paste(vmeths, collapse = ","), '}')
-    }else{
-        vMeths <- NULL
-    }
+    ## vmeths <- unlist(lapply(sidePages, function(x)x$js))
+    ## if(length(vmeths) > 0){
+    ##     vMeths <- paste0(', methods: {', paste(vmeths, collapse = ","), '}')
+    ## }else{
+    ##     vMeths <- NULL
+    ## }
     
     vJS <- paste0(routes, '; var vm = new Vue({el: "#',
                   paste0(uid, "App"),
                   '", router, vuetify: new Vuetify(), ',
                   'components: {', paste0(uid, "app"),
                   ': httpVueLoader("', paste0('views/', uid, '.vue'), '")}',
-                  vMeths, '});')
+                  '});')
     ## app.js
     writeLines(vJS, file.path(outdir, vuejs))
     ## Index.html
@@ -262,10 +239,10 @@ renderIndex <- function(uid = "main", main, sidePages = list(),
     rview <- vtags$v_content(list(vtags$router_view(props = c(ref = "routeRef"))))
     Main <- renderTemplate(ui = c(main$ui, rview), dataList = main$data, app = TRUE)
     message("Writing ", file.path(outdir, "views", paste0(uid, ".vue")))
-    writeLines(as.character(Main$html), file.path(outdir, "views", paste0(uid, ".vue")))
+    writeLines(as.character(Main), file.path(outdir, "views", paste0(uid, ".vue")))
     ## sidePages.vue
     for(i in seq(sidePages)){
-        writeLines(as.character(sidePages[[i]]$html),
+        writeLines(as.character(sidePages[[i]]),
                    file.path(outdir, "views", paste0(names(sidePages)[i], ".vue")))
         
     }

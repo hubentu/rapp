@@ -86,9 +86,10 @@ dumpFun <- function(fun, fname, type, path, app){
                    function(x){
                        x <- grep("package:", x, value = TRUE)
                        x <- x[!x %in% c("package:base", "package:rapp", paste0("package:", app))]
+                       x <- ifelse(length(x) > 1, rev(x)[1], x)
                        sub("package:", "", x)
                    })
-    pkgs <- pkgs[lengths(pkgs) > 0]
+    pkgs <- pkgs[!is.na(pkgs)]
     if(length(pkgs) > 0){
         impkg <- c()
         for(i in 1:length(pkgs)){
