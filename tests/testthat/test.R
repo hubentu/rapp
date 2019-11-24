@@ -29,6 +29,18 @@ genstr <- function(n = 100, dist = c("normal", "uniform")){
 ##     }
 ##     as.data.frame(rbind(summary(dat), summary(dat)))
 ## }
+genTab <- function(n = 100, dist = c("normal", "uniform")){
+    n <- as.integer(n)
+    dist <- match.arg(dist)
+    stopifnot(n < 1e+06)
+    if (dist == "normal") {
+        dat <- rnorm(n)
+    }else if (dist == "uniform") {
+        dat <- runif(n)
+    }
+    as.data.frame(rbind(summary(dat)))
+}
+
 gentab <- function(n = 100, dist = c("normal", "uniform")){
     n <- as.integer(n)
     dist <- match.arg(dist)
@@ -41,7 +53,6 @@ gentab <- function(n = 100, dist = c("normal", "uniform")){
     list(tdat = dat,
          tsum = as.data.frame(rbind(summary(dat))))
 }
-
 
 gendat <- function(n = 100, dist = c("normal", "uniform")) {
     ## genstr <- function(n = 100, dist = c("normal", "uniform")){
@@ -77,15 +88,15 @@ datplot <- function(rdat){
 
 ui <- card(title = "test", "min-width" = "800", class = "mx-auto",
            uiList=list(text_field(model="n", label="number"),
-                       vselect(model = "dist", label = "distribution", change = "gendat"),
+                       vselect(model = "dist", label = "distribution", change = "genTab"),
                        btn(onClick = "randomplot"),
                        data_table(table = "tsum"),
                        vimg(id = "plotOut", height = "600")))
 ##index <- BuildUI(uid = "test", ui)
 BuildApp(app = "testapp", ui = ui,
-         Rfun = list(gentab = gentab, randomplot = randomplot),
-         outType = c("table", "plot"),
-         outID = c("tsum", "plotOut"))
+         Rfun = list(genTab = genTab, randomplot = randomplot),
+         outType = list("table", "plot"),
+         outID = list("tsum", "plotOut"))
 
 ##
 ui <- card(title = "test", "min-width" = "800", class = "mx-auto",
@@ -118,7 +129,6 @@ BuildApp(app = "testapp", ui,
          Rfun = list(gendat = gendat, datplot = datplot),
          outType = list(list("text", "text", "table"), "plot"),
          outID = list(list("textA", "rdat", "tsum"), "plotOut"))
-
 
 ## plotly
 library(ggplot2)

@@ -41,7 +41,7 @@ mainbars <- dashBar(title = "test",
                 sidePath = c("plot"))
 
 plotui <- card(title = "Test App", text = "{{textA[0]}}",
-               "min-width" = "800",
+               "min-width" = "800", "max-width" = "1000",
                uiList=list(text_field(model="n", label="number"),
                            vselect(model = "dist", label = "distribution",
                                    change = "gendat"),
